@@ -1,0 +1,47 @@
+[user]
+        {{- if eq .chezmoi.hostname "MacBookProZenchef" }}
+        email = {{ (onepasswordDetailsFields "ad66b5d5rifettzd7ox6fobnfu").username.value }}
+        {{ else }}
+        email = {{ (onepasswordDetailsFields "nbtrt4thpe34jkugk2pj5nxeda").username.value }}
+        {{- end }}
+        name = Thibaut Etienne
+[pull]
+	rebase = true
+[alias]
+	co = checkout
+	ci = commit
+	st = status
+	br = branch
+	#ls = log --oneline
+        ls = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+[core]
+	editor = vim
+	excludesFile = ~/.config/git/gitignore
+        pager = delta
+
+[delta]
+       side-by-side = true
+
+[diff]
+	tool = meld
+        colorMoved = default
+[push]
+	default = current
+[fetch]
+	prune = true
+[rebase]
+	autoStash = true
+[merge]
+	conflictstyle = diff3
+
+[rerere]
+	enabled = 1
+[color]
+	ui = auto
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

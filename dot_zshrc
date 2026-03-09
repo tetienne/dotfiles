@@ -6,15 +6,15 @@
 
 # Periodic auto-update on Zsh startup: 'ask' or 'no'.
 # You can manually run `z4h update` to update everything.
-zstyle ':z4h:' auto-update      'no'
+zstyle ':z4h:' auto-update      'ask'
 # Ask whether to auto-update this often; has no effect if auto-update is 'no'.
 zstyle ':z4h:' auto-update-days '28'
 
 # Keyboard type: 'mac' or 'pc'.
 zstyle ':z4h:bindkey' keyboard  'mac'
 
-# Don't start tmux.
-zstyle ':z4h:' start-tmux       no
+# Start integrated tmux (required for prompt-at-bottom).
+zstyle ':z4h:' start-tmux       'integrated'
 
 # Mark up shell's output with semantic information.
 zstyle ':z4h:' term-shell-integration 'yes'
@@ -33,14 +33,17 @@ zstyle ':z4h:direnv:success' notify 'yes'
 
 # Enable ('yes') or disable ('no') automatic teleportation of z4h over
 # SSH when connecting to these hosts.
-zstyle ':z4h:ssh:example-hostname1'   enable 'yes'
-zstyle ':z4h:ssh:*.example-hostname2' enable 'no'
+# zstyle ':z4h:ssh:example-hostname1'   enable 'yes'
+# zstyle ':z4h:ssh:*.example-hostname2' enable 'no'
 # The default value if none of the overrides above match the hostname.
 zstyle ':z4h:ssh:*'                   enable 'no'
 
 # Send these files over to the remote host when connecting over SSH to the
 # enabled hosts.
-zstyle ':z4h:ssh:*' send-extra-files '~/.nanorc' '~/.env.zsh'
+# zstyle ':z4h:ssh:*' send-extra-files '~/.nanorc' '~/.env.zsh'
+
+# Move prompt to the bottom when zsh starts and on Ctrl+L.
+zstyle ':z4h:' prompt-at-bottom 'yes'
 
 # Clone additional Git repositories from GitHub.
 #
@@ -62,6 +65,9 @@ eval "$(zoxide init zsh)"
 
 # Export environment variables.
 export GPG_TTY=$TTY
+export EDITOR=nvim
+export MANPAGER="sh -c 'sed -u -e \"s/\\x1B\[[0-9;]*m//g; s/.\\x08//g\" | bat -p -lman'"
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # Source additional local files if they exist.
 z4h source ~/.env.zsh
@@ -88,10 +94,73 @@ autoload -Uz zmv
 function md() { [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1" }
 compdef _directories md
 
+# === Git Worktree Navigation ===
+# Jump to worktree by index
+zn() {
+  local n="${1:-0}"
+  local target="$(git worktree list | sed -n "$((n+1))p" | awk -F'  +' '{print $1}')"
+  [[ -z "$target" ]] && { echo "No worktree at index $n"; wtl; return 1; }
+  cd "$target"
+}
+
+alias z0='zn 0'   # go to original repo
+alias z1='zn 1'   # go to worktree 1
+alias z2='zn 2'   # go to worktree 2
+alias z3='zn 3'   # go to worktree 3
+alias wtl='git worktree list | nl -v 0'
+
+# === Git Worktree Management ===
+# Create worktree (and cd into it)
+gwt() {
+  local name="${1:?Usage: gwt <name> [base-branch]}"
+  local base="${2:-}"
+  local root="$(git worktree list | head -1 | awk -F'  +' '{print $1}')"
+  local repo="$(basename "$root")"
+  local dir="$HOME/git/worktrees/${repo}/${name}"
+
+  if [[ -z "$base" ]]; then
+    git fetch origin "$name" 2>/dev/null
+
+    if git show-ref --verify --quiet "refs/heads/$name"; then
+      # Local branch exists -- sync with remote if available
+      if git show-ref --verify --quiet "refs/remotes/origin/$name"; then
+        git branch -f "$name" "origin/$name" 2>/dev/null
+      fi
+      git worktree add "$dir" "$name" || return 1
+    elif git show-ref --verify --quiet "refs/remotes/origin/$name"; then
+      # Remote-only branch -- DWIM creates tracking branch
+      git worktree add "$dir" "$name" || return 1
+    else
+      # New branch from main
+      git worktree add "$dir" -b "$name" origin/main || return 1
+    fi
+  else
+    git worktree add "$dir" -b "$name" "$base" || return 1
+  fi
+
+  cd "$dir"
+}
+
+# Create worktree + start Claude
+gwc() {
+  gwt "$@" && claude
+}
+
+# Remove current worktree and go back to main
+gwd() {
+  local current="$(pwd)"
+  local main="$(git worktree list | head -1 | awk -F'  +' '{print $1}')"
+
+  [[ "$current" == "$main" ]] && { echo "Cannot remove main worktree"; return 1; }
+
+  z0 && git worktree remove "$current" || { cd "$current"; return 1; }
+}
+
 # Define named directories: ~w <=> Windows home directory on WSL.
 [[ -z $z4h_win_home ]] || hash -d w=$z4h_win_home
 
 # Define aliases.
+alias clear=z4h-clear-screen-soft-bottom
 alias tree='tree -a -I .git'
 alias s=ssh
 ## git
@@ -116,12 +185,12 @@ alias grbc='git rebase --continue'
 alias grbi='git rebase --interactive'
 
 ## terraform
-alias tf='terraform'
-alias tfc='terraform console'
-alias tff='terraform fmt'
-alias tfi='terraform init'
-alias tfiu='terraform init -upgrade'
-alias tfv='terraform validate'
+alias tf='tofu'
+alias tfc='tf console'
+alias tff='tf fmt'
+alias tfi='tf init'
+alias tfiu='tf init -upgrade'
+alias tfv='tf validate'
 
 # Add flags to existing aliases.
 alias ls="${aliases[ls]:-ls} -A"

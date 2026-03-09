@@ -1,0 +1,5 @@
+.envrc
+mise.local.toml
+.clinerulesfile
+.serena
+**/.claude/settings.local.json

@@ -1,10 +1,6 @@
 [user]
-        {{- if eq .chezmoi.hostname "MacBookProZenchef" }}
-        email = {{ (onepasswordDetailsFields "ad66b5d5rifettzd7ox6fobnfu").username.value }}
-        {{ else }}
-        email = {{ (onepasswordDetailsFields "nbtrt4thpe34jkugk2pj5nxeda").username.value }}
-        {{- end }}
-        name = Thibaut Etienne
+	name = {{ .name }}
+	email = {{ .email }}
 [pull]
 	rebase = true
 [alias]
@@ -12,20 +8,15 @@
 	ci = commit
 	st = status
 	br = branch
-	#ls = log --oneline
-        ls = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-
+	ls = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 [core]
-	editor = vim
-	excludesFile = ~/.config/git/gitignore
-        pager = delta
-
+	editor = nvim
+	pager = delta
 [delta]
-       side-by-side = true
-
+	side-by-side = true
 [diff]
 	tool = meld
-        colorMoved = default
+	colorMoved = default
 [push]
 	default = current
 [fetch]
@@ -34,12 +25,12 @@
 	autoStash = true
 [merge]
 	conflictstyle = diff3
-
 [rerere]
 	enabled = 1
 [color]
 	ui = auto
-
+[init]
+	defaultBranch = main
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f

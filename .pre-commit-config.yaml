@@ -15,6 +15,7 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
+        exclude: dot_p10k\.zsh
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.22.1

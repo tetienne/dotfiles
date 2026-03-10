@@ -16,9 +16,18 @@
 	side-by-side = true
 [diff]
 	tool = meld
-	colorMoved = default
+	colorMoved = zebra
+	algorithm = histogram
+	mnemonicPrefix = true
 [push]
 	default = current
+	autoSetupRemote = true
+[branch]
+	sort = -committerdate
+[column]
+	ui = auto
+[commit]
+	verbose = true
 [fetch]
 	prune = true
 [rebase]

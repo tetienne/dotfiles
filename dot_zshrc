@@ -192,8 +192,13 @@ alias tfi='tf init'
 alias tfiu='tf init -upgrade'
 alias tfv='tf validate'
 
-# Add flags to existing aliases.
-alias ls="${aliases[ls]:-ls} -A"
+## modern replacements
+alias cat='bat'
+alias top='btm'
+## eza
+alias ls='eza -a'
+alias ll='eza -la --git --icons'
+alias lt='eza -a --tree --level=2'
 
 # Set shell options: http://zsh.sourceforge.net/Doc/Release/Options.html.
 setopt glob_dots     # no special treatment for file names with a leading dot

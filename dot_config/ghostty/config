@@ -1,0 +1,12 @@
+theme = light:Catppuccin Latte,dark:Catppuccin Mocha
+macos-titlebar-style = tabs
+font-thicken = true
+macos-option-as-alt = true
+window-padding-x = 16
+window-padding-y = 16
+window-padding-balance = true
+cursor-style-blink = false
+window-save-state = always
+window-colorspace = display-p3
+clipboard-paste-protection = true
+config-file = ?presentation.conf

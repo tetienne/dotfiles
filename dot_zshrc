@@ -94,6 +94,29 @@ autoload -Uz zmv
 function md() { [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1" }
 compdef _directories md
 
+# === Ghostty Presentation Mode ===
+_ghostty_conf=~/.config/ghostty/presentation.conf
+present() {
+  cat > "$_ghostty_conf" <<'EOF'
+font-size = 20
+window-padding-x = 32
+window-padding-y = 32
+window-padding-balance = true
+macos-titlebar-style = hidden
+minimum-contrast = 1.5
+cursor-style = block
+cursor-color = #ff6600
+EOF
+  kill -SIGUSR2 $(pgrep -x ghostty) 2>/dev/null
+  echo "Presentation mode ON."
+}
+
+unpresent() {
+  rm -f "$_ghostty_conf"
+  kill -SIGUSR2 $(pgrep -x ghostty) 2>/dev/null
+  echo "Presentation mode OFF."
+}
+
 # === Git Worktree Navigation ===
 # Jump to worktree by index
 zn() {
